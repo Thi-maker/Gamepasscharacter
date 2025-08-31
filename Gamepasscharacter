@@ -144,7 +144,7 @@ optionsFrame.BackgroundTransparency = 1
 optionsFrame.Visible = false
 optionsFrame.Parent = panel
 
-local charNames = {"Goro💀", "Reptil🐊", "Tremor⛰️", "Takeda🐉"}
+local charNames = {"Goro", "Reptil", "Tremor", "Takeda"}
 
 for i, name in ipairs(charNames) do
 	local btn = Instance.new("TextButton")
