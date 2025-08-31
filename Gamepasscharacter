@@ -1,0 +1,218 @@
+-- Serviços
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+gui.Name = "MortalKombatMenu"
+gui.ResetOnSpawn = false
+
+-- Som de clique curto (espada)
+local clickSound = Instance.new("Sound")
+clickSound.SoundId = "rbxassetid://911882310" -- som de clique/espada
+clickSound.Volume = 1
+clickSound.Parent = gui
+local function tocarClique()
+	clickSound:Play()
+end
+
+-- Botão HUD redondo ⚔️ com fundo preto semi-transparente
+local menuBtn = Instance.new("TextButton")
+menuBtn.Size = UDim2.new(0, 60, 0, 60)
+menuBtn.Position = UDim2.new(0.05, 0, 0.8, 0)
+menuBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+menuBtn.BackgroundTransparency = 0.5
+menuBtn.Text = "⚔️"
+menuBtn.TextScaled = true
+menuBtn.TextColor3 = Color3.fromRGB(255, 0, 0)
+menuBtn.Font = Enum.Font.Fantasy
+menuBtn.Parent = gui
+
+local menuCorner = Instance.new("UICorner")
+menuCorner.CornerRadius = UDim.new(1, 0)
+menuCorner.Parent = menuBtn
+
+-- Glow/Stroke no botão
+local stroke = Instance.new("UIStroke")
+stroke.Thickness = 2
+stroke.Color = Color3.fromRGB(255, 100, 100)
+stroke.Parent = menuBtn
+
+-- Glow pulsante + pulsar tamanho
+task.spawn(function()
+	while true do
+		local tweenColor = TweenService:Create(stroke, TweenInfo.new(0.8, Enum.EasingStyle.Sine, Enum.EasingDirection.Out, -1, true), {Color = Color3.fromRGB(255, 200, 200)})
+		local tweenScaleUp = TweenService:Create(menuBtn, TweenInfo.new(0.8, Enum.EasingStyle.Sine, Enum.EasingDirection.Out, -1, true), {Size = UDim2.new(0, 70, 0, 70)})
+		local tweenScaleDown = TweenService:Create(menuBtn, TweenInfo.new(0.8, Enum.EasingStyle.Sine, Enum.EasingDirection.Out, -1, true), {Size = UDim2.new(0, 60, 0, 60)})
+		tweenColor:Play()
+		tweenScaleUp:Play()
+		tweenScaleDown:Play()
+		tweenColor.Completed:Wait()
+	end
+end)
+
+-- Menu arrastável
+local dragging = false
+local dragStart
+local startPos
+
+menuBtn.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		dragging = true
+		dragStart = input.Position
+		startPos = menuBtn.Position
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end)
+
+menuBtn.InputChanged:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseMovement then
+		UserInputService.InputChanged:Connect(function(move)
+			if dragging and move == input then
+				local delta = move.Position - dragStart
+				menuBtn.Position = UDim2.new(
+					startPos.X.Scale,
+					startPos.X.Offset + delta.X,
+					startPos.Y.Scale,
+					startPos.Y.Offset + delta.Y
+				)
+			end
+		end)
+	end
+end)
+
+-- Painel principal
+local panel = Instance.new("Frame")
+panel.Size = UDim2.new(0, 250, 0, 300)
+panel.Position = UDim2.new(0.5, -125, 0.5, -150)
+panel.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+panel.Visible = false
+panel.Parent = gui
+
+local panelCorner = Instance.new("UICorner")
+panelCorner.CornerRadius = UDim.new(0, 15)
+panelCorner.Parent = panel
+
+-- Brilho leve pulsante no painel
+local panelStroke = Instance.new("UIStroke")
+panelStroke.Thickness = 2
+panelStroke.Color = Color3.fromRGB(150, 0, 0)
+panelStroke.Parent = panel
+task.spawn(function()
+	while true do
+		local tween = TweenService:Create(panelStroke, TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.Out, -1, true), {Color = Color3.fromRGB(255, 0, 0)})
+		tween:Play()
+		tween.Completed:Wait()
+	end
+end)
+
+-- Título
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 40)
+title.BackgroundTransparency = 1
+title.Text = "⚔️ Mortal Kombat ⚔️"
+title.TextScaled = true
+title.TextColor3 = Color3.fromRGB(255, 0, 0)
+title.Font = Enum.Font.Fantasy
+title.Parent = panel
+
+-- Botão "Escolher Personagem"
+local chooseBtn = Instance.new("TextButton")
+chooseBtn.Size = UDim2.new(1, -20, 0, 40)
+chooseBtn.Position = UDim2.new(0, 10, 0, 60)
+chooseBtn.Text = "🎭 Escolher Personagem ✅"
+chooseBtn.TextScaled = true
+chooseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+chooseBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+chooseBtn.Font = Enum.Font.Fantasy
+chooseBtn.Parent = panel
+
+local chooseCorner = Instance.new("UICorner")
+chooseCorner.CornerRadius = UDim.new(0, 10)
+chooseCorner.Parent = chooseBtn
+
+-- Container de opções
+local optionsFrame = Instance.new("Frame")
+optionsFrame.Size = UDim2.new(1, -20, 0, 160)
+optionsFrame.Position = UDim2.new(0, 10, 0, 110)
+optionsFrame.BackgroundTransparency = 1
+optionsFrame.Visible = false
+optionsFrame.Parent = panel
+
+local charNames = {"Goro💀", "Reptil🐊", "Tremor⛰️", "Takeda🐉"}
+
+for i, name in ipairs(charNames) do
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.new(1, 0, 0, 30)
+	btn.Position = UDim2.new(0, 0, 0, (i - 1) * 35)
+	btn.Text = name
+	btn.TextScaled = true
+	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+	btn.BackgroundColor3 = Color3.fromRGB(60, 0, 0)
+	btn.Font = Enum.Font.Fantasy
+	btn.Parent = optionsFrame
+
+	local bcorner = Instance.new("UICorner")
+	bcorner.CornerRadius = UDim.new(0, 8)
+	bcorner.Parent = btn
+
+	btn.MouseButton1Click:Connect(function()
+		tocarClique()
+		local args = {name}
+		game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("ChangeCharacter"):FireServer(unpack(args))
+	end)
+end
+
+-- Assinatura
+local sign = Instance.new("TextLabel")
+sign.Size = UDim2.new(1, 0, 0, 30)
+sign.Position = UDim2.new(0, 0, 1, -30)
+sign.BackgroundTransparency = 1
+sign.Text = "Feito por Thi"
+sign.TextScaled = true
+sign.TextColor3 = Color3.fromRGB(200, 200, 200)
+sign.Font = Enum.Font.Fantasy
+sign.Parent = panel
+
+-- Abrir/fechar painel com animação + fade nas opções
+local function togglePanel()
+	tocarClique()
+	if not panel.Visible then
+		panel.Visible = true
+		panel.Size = UDim2.new(0, 0, 0, 0)
+		TweenService:Create(panel, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 250, 0, 300)}):Play()
+	else
+		local tween = TweenService:Create(panel, TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0)})
+		tween:Play()
+		tween.Completed:Connect(function()
+			panel.Visible = false
+		end)
+	end
+end
+
+menuBtn.MouseButton1Click:Connect(togglePanel)
+
+chooseBtn.MouseButton1Click:Connect(function()
+	tocarClique()
+	optionsFrame.Visible = not optionsFrame.Visible
+	if optionsFrame.Visible then
+		for _, v in pairs(optionsFrame:GetChildren()) do
+			if v:IsA("TextButton") then
+				v.TextTransparency = 1
+				v.BackgroundTransparency = 0.7
+				TweenService:Create(v, TweenInfo.new(0.3), {TextTransparency = 0, BackgroundTransparency = 0}):Play()
+			end
+		end
+	end
+end)
+
+-- Painel some se player resetar
+player.CharacterAdded:Connect(function()
+	panel.Visible = false
+	optionsFrame.Visible = false
+end)
